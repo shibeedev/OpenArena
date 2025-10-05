@@ -131,15 +131,15 @@
 
     @keyframes colorChange {
         0%, 100% {
-            background-image: linear-gradient(to bottom, #000000, #493402);
+            background-image: linear-gradient(to bottom, #000000, #024749);
         }
 
         25%, 70% {
-            background-image: linear-gradient(to bottom, #000000, #584701);
+            background-image: linear-gradient(to bottom, #000000, #015558);
         }
 
         50% {
-            background-image: linear-gradient(to bottom, #000000, #674a01);
+            background-image: linear-gradient(to bottom, #000000, #016067);
         }
     }
 

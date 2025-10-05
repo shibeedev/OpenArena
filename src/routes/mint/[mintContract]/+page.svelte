@@ -14,7 +14,7 @@
     import { addNFTToWallet} from '$lib/localWalletStorage.js';
 
     const simpleCollections = {
-        "0xa2C7b5aD89FAF313fD734c1B810583A765048A8b": {
+        "": {
             total: 1000
         }
     }

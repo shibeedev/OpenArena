@@ -9,6 +9,7 @@
             JOIN OUR GAMING COMMUNITIES
         </div>
         <!--Social link-->
+        <!--
         <div class="flex py-1 gap-4">
             <button on:click={()=>{window.open("", "_blank")}} class="flex shrink-self-hover">
                 <img class="inline-block h-[24px]" src="/icons/twitterX.svg" alt="Twitter/X icon"/>
@@ -21,7 +22,7 @@
             <button on:click={()=>{window.open("https://openarena.cc/docs", "_blank")}} class="flex underline shrink-self-hover text-button hover:text-buttonHover text-sm">
                 DOCUMENTATION
             </button>
-        </div>
+        </div>-->
     </div>
     <div class="flex flex-wrap justify-between items-end text-white lg:gap-[30px] gap-[10px] pb-2 z-30 ">
         <div class="flex flex-col gap-[8px]">

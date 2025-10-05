@@ -412,7 +412,7 @@
                 
                 <!-- Import NFTs section -->
                 <h1 class="text-[1.5vw] font-bold text-white mb-[1vw]">IMPORT ANY EXISTING NFTS</h1>
-                <button class="flex justify-start items-start mb-[2vw] text-darkGray underline hover:text-buttonHover" on:click={()=>{window.open(`${config.blockExplorerUrls}/address/${address}#tokentxnsErc721`, "_blank")}}>
+                <button class="flex justify-start items-start mb-[2vw] text-darkGray underline hover:text-buttonHover" on:click={()=>{window.open(`${config.blockExplorerUrls}/address/${address}?tab=token_transfers&type=URC-721`, "_blank")}}>
                     View your NFTs you own on block explorer
                 </button>
                 <!-- Form fields -->

@@ -65,7 +65,7 @@
                         <div class="flex items-center gap-[1vw]">
                             <div class="flex items-center gap-[1vw]">
                                 <button class="flex glow-border-run self-center p-[0.3vw] rounded-md bg-button hover:bg-buttonHover w-fit text-white text-[0.8vw]"
-                                on:click={() => {goto("./game/importnft")}}>
+                                on:click={() => {goto("./importnft")}}>
                                     Import & Generate skills for your NFT
                                 </button>
                             </div>

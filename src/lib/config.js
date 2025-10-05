@@ -12,7 +12,7 @@ export default {
         symbol: "U2U",
         decimals: 18
     },
-    blockExplorerUrls: "",
+    blockExplorerUrls: "https://u2uscan.xyz",
     site: "https://openarena.cc",
     twitter: "",
     discord: ""

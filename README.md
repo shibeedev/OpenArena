@@ -7,6 +7,7 @@ https://openarena.cc/
 * Website: https://openarena.cc/
 * Demo video: https://youtu.be/iWlqF__-ei4?si=BLtdTkDzTYUqRDkR
 * Contract OpenArena: https://u2uscan.xyz/address/0xaF24cAd4ef87494774494E6fc265e7432236F7eC
+* Deck: https://docs.google.com/presentation/d/1eXaKO7LdnFQ5P9oRZDWxyDeIfAPNLMj50eR9G6gYki4/edit?usp=sharing
 * Full detail submission on Hackquest: https://www.hackquest.io/projects/OpenArena
 
 # How to run

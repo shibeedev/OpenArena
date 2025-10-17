@@ -134,6 +134,10 @@
                 this.processReceipt(this.game.receipt);
                 //dispatch event to know the game is ready
                 window.dispatchEvent(new CustomEvent('game-scene-ready'));
+                if (this.game.failedNFTs && this.game.failedNFTs.length > 0) {
+                    console.log(`Retrying ${this.game.failedNFTs.length} failed NFTs in background...`);
+                    this.retryFailedNFTs(this.game.failedNFTs);
+                }
             }
 
             initializeCharacters() {
@@ -970,6 +974,67 @@
                     winnerAddress = "tie"
                 }
             }
+
+            retryFailedNFTs(failedList) {
+                failedList.forEach(({ key, url }) => {
+                    const timeout = setTimeout(() => {
+                        console.warn(`Retry timeout after 10s for ${key}`);
+                    }, 10000);
+                    
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    
+                    img.onload = () => {
+                        try {
+                            // Directly replace the texture source instead of removing and re-adding
+                            if (this.textures.exists(key)) {
+                                const texture = this.textures.get(key);
+                                this.textures.remove(key); 
+                                this.textures.addImage(key, img);
+                            } else {
+                                this.textures.addImage(key, img);
+                            }
+                            
+                            console.log(`Successfully retried loading ${key}`);
+                            
+                            // Update the character image in the scene
+                            const [team, pos] = key.replace('charater', '').split('').map(Number);
+                            const container = this.containers[team][pos];
+                            if (container) {
+                                const characterImage = this.statsTexts[team][pos].characterImage;
+                                if (characterImage) {
+                                    // Force refresh the texture
+                                    characterImage.setTexture(key);
+                                    
+                                    // Reapply sizing
+                                    const character = this.characters[team][pos];
+                                    const scale = Math.min(
+                                        this.cameras.main.width / this.baseWidth,
+                                        this.cameras.main.height / this.baseHeight
+                                    ) * 0.75;
+                                    
+                                    characterImage.displayWidth = character.height * scale * 0.6;
+                                    characterImage.displayHeight = character.height * scale * 0.6;
+                                    characterImage.setPosition(0, -character.height * scale * 0.1);
+                                    characterImage.setOrigin(0.5);
+                                }
+                            }
+                            
+                            clearTimeout(timeout);
+                        } catch (e) {
+                            console.error(`Retry addImage failed for ${key}:`, e);
+                            clearTimeout(timeout);
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        console.warn(`Retry failed for ${key}, keeping fallback`);
+                        clearTimeout(timeout);
+                    };
+                    
+                    img.src = url;
+                });
+            }
         }
     }
 
@@ -979,6 +1044,8 @@
         return class PreloadScene extends Phaser.Scene {
             constructor() {
                 super({ key: 'PreloadScene' });
+                this.failedNFTs = []; 
+
             }
 
             preload() {
@@ -1085,7 +1152,16 @@
                 */
                 //Complete load
                 this.load.on('complete', async () => {                    
-                    await Promise.all(nftPromises);                    
+                    try {
+                        await Promise.all(nftPromises);
+                    } catch (e) {
+
+                    }
+                    
+                    console.log("All NFTs loaded successfully");
+                    if (this.failedNFTs && this.failedNFTs.length > 0) {
+                        this.game.failedNFTs = this.failedNFTs;
+                    }
                     // Show 100%
                     this.progressBar.clear();
                     this.progressBar.fillStyle(0x00ff00, 1);
@@ -1106,19 +1182,81 @@
             }
 
             preloadNFTManually(key, url) {
-                return new Promise((resolve, reject) => {
-                    const startTime = Date.now();                    
+                return new Promise((resolve) => {
+                    let timeoutOccurred = false;
+                    
+                    const timeout = setTimeout(() => {
+                        console.warn(`Timeout after 5s for ${key}`);
+                        timeoutOccurred = true;
+                        this.failedNFTs.push({ key, url });
+                        
+                        // Load fallback on timeout
+                        const fallbackImg = new Image();
+                        fallbackImg.crossOrigin = 'anonymous';
+                        
+                        fallbackImg.onload = () => {
+                            try {
+                                this.textures.addImage(key, fallbackImg);
+                                resolve();
+                            } catch (e) {
+                                console.error(`addImage failed for fallback ${key}:`, e);
+                                resolve();
+                            }
+                        };
+                        
+                        fallbackImg.onerror = () => {
+                            resolve();
+                        };
+                        
+                        fallbackImg.src = '/game/elements/atkIcon.svg';
+                    }, 5000);
+                    
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
                     
-                    img.onload = () => {    
-                        const duration = Date.now() - startTime;
-                        this.textures.addImage(key, img);
-                        resolve();
+                    img.onload = () => {
+                        if (timeoutOccurred) {
+                            console.warn(`${key} loaded after timeout, ignoring`);
+                            return;
+                        }
+                        
+                        try {
+                            this.textures.addImage(key, img);
+                            clearTimeout(timeout);
+                            resolve();
+                        } catch (e) {
+                            console.error(`addImage failed for ${key}:`, e);
+                            img.onerror();
+                        }
                     };
                     
-                    img.onerror = (error) => {
-                        reject(error);
+                    img.onerror = () => {
+                        if (timeoutOccurred) {
+                            return;
+                        }
+                        
+                        console.warn(`Failed to load ${key}, using fallback`);
+                        this.failedNFTs.push({ key, url });
+                        clearTimeout(timeout);
+                        
+                        const fallbackImg = new Image();
+                        fallbackImg.crossOrigin = 'anonymous';
+                        
+                        fallbackImg.onload = () => {
+                            try {
+                                this.textures.addImage(key, fallbackImg);
+                                resolve();
+                            } catch (e) {
+                                console.error(`addImage failed for fallback ${key}:`, e);
+                                resolve();
+                            }
+                        };
+                        
+                        fallbackImg.onerror = () => {
+                            resolve();
+                        };
+                        
+                        fallbackImg.src = '/game/elements/atkIcon.svg';
                     };
                     
                     img.src = url;
@@ -1523,7 +1661,7 @@
                                 </span>
                             </div>
                             <button class="underline text-[0.85vw]" in:slide={{ duration: 300 }} 
-                            on:click={()=>{window.open(`${config.blockExplorerUrls}/nft/${characterPopupData.collection}/${characterPopupData.name}`, "_blank")}}>
+                            on:click={()=>{window.open(`${config.blockExplorerUrls}/token/${characterPopupData.collection}/instance/${characterPopupData.name}`, "_blank")}}>
                                 View this NFT on explorer
                             </button>
                         {/if}
